@@ -1,0 +1,9 @@
+D:\Work\C#\NetworkingExample\Chat-o-Tron\Common\bin\Debug\Common.dll
+D:\Work\C#\NetworkingExample\Chat-o-Tron\Common\bin\Debug\Common.pdb
+D:\Work\C#\NetworkingExample\Chat-o-Tron\Common\obj\Debug\Common.csproj.AssemblyReference.cache
+D:\Work\C#\NetworkingExample\Chat-o-Tron\Common\obj\Debug\Common.csproj.CoreCompileInputs.cache
+D:\Work\C#\NetworkingExample\Chat-o-Tron\Common\obj\Debug\Common.dll
+D:\Work\C#\NetworkingExample\Chat-o-Tron\Common\obj\Debug\Common.pdb
+D:\Work\C#\NetworkingExample\Chat-o-Tron\Common\bin\Debug\Utility.dll
+D:\Work\C#\NetworkingExample\Chat-o-Tron\Common\bin\Debug\Utility.pdb
+D:\Work\C#\NetworkingExample\Chat-o-Tron\Common\obj\Debug\Common.csproj.CopyComplete
