@@ -86,7 +86,7 @@ namespace Chat_o_Tron
 		{	
 			byte[] buffer = new byte[2048];
 
-			Task<int> recievedCountOfBytes = null;
+			int recievedCountOfBytes = -1;
 
 			Decoder decoder = Encoding.UTF8.GetDecoder();
 
@@ -97,28 +97,27 @@ namespace Chat_o_Tron
 			{
 				do
 				{
-					if (recievedCountOfBytes == null)
+					if (!Client.GetStream().CanRead)
 					{
-						recievedCountOfBytes = Client.GetStream().ReadAsync(buffer, 0, buffer.Length);
+						continue;
 					}
-					
-					if (recievedCountOfBytes.IsCompleted)
+
+					try
 					{
-						char[] chars = new char[decoder.GetCharCount(buffer, 0, recievedCountOfBytes.Result)];
-						decoder.GetChars(buffer, 0, recievedCountOfBytes.Result, chars, 0);
-
-						message.Append(chars);
-
-						recievedCountOfBytes = null;
+						recievedCountOfBytes = Client.GetStream().Read(buffer, 0, buffer.Length);
 					}
+					catch (Exception e)
+					{
+						Console.WriteLine(e.Data); // App closed (NetworkStream disposed) while trying to read data from the stream - not a problem
+					}
+
+					char[] chars = new char[decoder.GetCharCount(buffer, 0, recievedCountOfBytes)];
+					decoder.GetChars(buffer, 0, recievedCountOfBytes, chars, 0);
+
+					message.Append(chars);
 				}
 				while (Client.GetStream().DataAvailable);
 
-				if (string.IsNullOrEmpty(message.ToString()))
-				{
-					continue;
-				}
-				
 				payload = JsonConvert.DeserializeObject<JsonData>(message.ToString());
 
 				switch (payload.command)
@@ -146,7 +145,7 @@ namespace Chat_o_Tron
 						break;
 				}
 
-				message.Clear();
+				message.Clear();				
 			}
 		}
 
