@@ -42,13 +42,13 @@ namespace Chat_o_Tron
 
 			MenuForm childForm = new MenuForm(tcpClient);
 
+			Utility.Utility.username = usernameBox.Text;
+
 			this.Hide();
 			childForm.ShowDialog();
 
 			tcpClient.GetStream().Close();
 			tcpClient.Close();
-
-			Utility.Utility.username = usernameBox.Text;
 
 			this.Close();
 		}

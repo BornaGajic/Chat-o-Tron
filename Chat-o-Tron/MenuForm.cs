@@ -22,19 +22,19 @@ namespace Chat_o_Tron
 		private TcpClient Client { get; set; }
 
 		private Dictionary<Guid, ChatForm> activeChatRooms = new Dictionary<Guid, ChatForm>();
-		
+
 		public MenuForm (TcpClient client)
 		{
 			InitializeComponent();
 
 			Client = client;
 
-			RefreshButton.Click += RefreshRooms;
+			RefreshButton.Click += RefreshRoomButton_Click;
 		}
 
 		private async void CreateRoomButton_Click (object sender, EventArgs e)
 		{
-			byte[] data = Encoding.ASCII.GetBytes(
+			byte[] data = Encoding.UTF8.GetBytes(
 				JsonConvert.SerializeObject(new JsonData () {
 					command = Commands.NewRoom
 				})
@@ -42,16 +42,17 @@ namespace Chat_o_Tron
 
 			await Client.GetStream().WriteAsync(data, 0, data.Length);
 
-			await Task.Run(() => {
-				Thread.Sleep(500);
-			});
-
-			RefreshRooms(null, null);
+			await RefreshRooms();
 		}
 
-		private async void RefreshRooms (object sender, EventArgs e)
+		private async void RefreshRoomButton_Click (object sender, EventArgs e)
 		{
-			byte[] data = Encoding.ASCII.GetBytes(
+			await RefreshRooms();
+		}
+
+		private async Task RefreshRooms ()
+		{
+			byte[] data = Encoding.UTF8.GetBytes(
 				JsonConvert.SerializeObject(new JsonData () {
 					command = Commands.Refresh
 				})
@@ -62,7 +63,7 @@ namespace Chat_o_Tron
 
 		private async void JoinRoom (Guid roomId, string roomName)
 		{
-			byte[] data = Encoding.ASCII.GetBytes(
+			byte[] data = Encoding.UTF8.GetBytes(
 				JsonConvert.SerializeObject(new JsonData() {
 					command = Commands.Join,
 					room = new Room () { id = roomId } 
@@ -78,55 +79,74 @@ namespace Chat_o_Tron
 
 			activeChatRooms[roomId].Show();
 
-			RefreshRooms(null, null);
+			await RefreshRooms();
 		}
 
 		private void ClientReciever ()
 		{	
-			byte[] serverData = new byte[1024];
+			byte[] buffer = new byte[2048];
+
+			Task<int> recievedCountOfBytes = null;
+
+			Decoder decoder = Encoding.UTF8.GetDecoder();
+
+			StringBuilder message = new();
 			JsonData payload = null;
-			Task<int> reciever = null;
 
 			while (this.Visible == true)
 			{
-				if (reciever == null)
+				do
 				{
-					reciever = Client.GetStream().ReadAsync(serverData, 0, serverData.Length);
-				}
-
-				if (reciever.IsCompleted)
-				{
-					
-					payload = JsonConvert.DeserializeObject<JsonData>(Encoding.ASCII.GetString(serverData, 0, reciever.Result));
-
-					switch (payload.command)
+					if (recievedCountOfBytes == null)
 					{
-						case Commands.Leave:
-							activeChatRooms.Remove(payload.room.id);
-							break;
-						case Commands.Post:
-							ChatForm room = activeChatRooms[payload.room.id];
-
-							this.Invoke(new Action<string, bool, string>(room.ShowMessage), payload.message, payload.isMessageMine, payload.username);
-							break;
-						case Commands.Refresh:
-							if (payload.activeRooms.Count > 0)
-							{
-								var func = new Action<List<Room>>(this.ShowRoomList);
-
-								this.Invoke(func, payload.activeRooms);
-							}
-							break;
-						case Commands.NewRoom:
-							activeChatRooms[payload.room.id] = new ChatForm(Client, payload.room.id);
-
-							this.Invoke(new MethodInvoker(activeChatRooms[payload.room.id].Show));
-								
-							break;
+						recievedCountOfBytes = Client.GetStream().ReadAsync(buffer, 0, buffer.Length);
 					}
+					
+					if (recievedCountOfBytes.IsCompleted)
+					{
+						char[] chars = new char[decoder.GetCharCount(buffer, 0, recievedCountOfBytes.Result)];
+						decoder.GetChars(buffer, 0, recievedCountOfBytes.Result, chars, 0);
 
-					reciever = null;
+						message.Append(chars);
+
+						recievedCountOfBytes = null;
+					}
 				}
+				while (Client.GetStream().DataAvailable);
+
+				if (string.IsNullOrEmpty(message.ToString()))
+				{
+					continue;
+				}
+				
+				payload = JsonConvert.DeserializeObject<JsonData>(message.ToString());
+
+				switch (payload.command)
+				{
+					case Commands.Leave:
+						activeChatRooms.Remove(payload.room.id);
+						break;
+					case Commands.Post:
+						ChatForm room = activeChatRooms[payload.room.id];
+
+						this.Invoke(new Action<string, bool, string>(room.ShowMessage), payload.message, payload.isMessageMine, payload.username);
+						break;
+					case Commands.Refresh:
+						if (payload.activeRooms.Count > 0)
+						{
+							var func = new Action<List<Room>>(this.ShowRoomList);
+
+							this.Invoke(func, payload.activeRooms);
+						}
+						break;
+					case Commands.NewRoom:
+						activeChatRooms[payload.room.id] = new ChatForm(Client, payload.room.id);
+
+						this.Invoke(new MethodInvoker(activeChatRooms[payload.room.id].Show));
+						break;
+				}
+
+				message.Clear();
 			}
 		}
 
@@ -149,7 +169,7 @@ namespace Chat_o_Tron
 
 				if (!contains)
 				{
-					var listItem = new ListViewItem(new string[] { room.name, room.numOfParticipants.ToString() })
+					var listItem = new ListViewItem (new string[] { room.name, room.numOfParticipants.ToString() })
 					{
 						Font = new Font("Arial", 12),
 						Tag = room.id
@@ -162,13 +182,14 @@ namespace Chat_o_Tron
 			}
 		}
 
-		private void MenuForm_Shown (object sender, EventArgs e)
+		private async void MenuForm_Shown (object sender, EventArgs e)
 		{
-			Thread recieverThread = new Thread(new ThreadStart(ClientReciever));
+			Thread recieverThread = new Thread(ClientReciever);
+
 			recieverThread.IsBackground = true;
 			recieverThread.Start();
-
-			RefreshRooms(null, null);
+			
+			await RefreshRooms ();
 		}
 
 		private void RoomList_DoubleClick (object sender, EventArgs e)

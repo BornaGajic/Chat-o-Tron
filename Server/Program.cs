@@ -13,6 +13,7 @@ using System.Net.Configuration;
 using System.Runtime.InteropServices;
 using Common.POCO;
 using Newtonsoft.Json;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ChatServer
 {
@@ -60,8 +61,10 @@ namespace ChatServer
 					client = null;
 				}
 
-				foreach (var connectedClient in ConnectedClients)
+				for (int i = 0; i < ConnectedClients.Count; i++)
 				{
+					TcpClient connectedClient = ConnectedClients[i];
+
 					NetworkStream ns = connectedClient.GetStream();
 					
 					if (ns.DataAvailable)
@@ -109,7 +112,7 @@ namespace ChatServer
 			string response = JsonConvert.SerializeObject(new JsonData () {
 				command = Commands.NewRoom,
 				room = new Room () { id = roomId }
-			});			
+			});
 			
 			await ns.WriteAsync(Encoding.ASCII.GetBytes(response), 0, response.Length);
 		}
@@ -135,6 +138,13 @@ namespace ChatServer
 					room.Value.Remove(client);
 				}
 			}
+
+			lock (ConnectedClients)
+			{
+				ConnectedClients.Remove(client);
+			}
+
+			Console.WriteLine(" >> Client disconnected!");
 		}
 
 
@@ -143,12 +153,14 @@ namespace ChatServer
 			foreach (TcpClient c in RoomClients[payload.room.id])
 			{
 				payload.isMessageMine = c == sender;
-
-				byte[] response = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(payload));
+				
+				string response = JsonConvert.SerializeObject(payload);
+				
+				byte[] byteResponse = Encoding.ASCII.GetBytes(response);
 
 				NetworkStream clientNs = c.GetStream();
 
-				await clientNs.WriteAsync(response, 0, response.Length);	
+				await clientNs.WriteAsync(byteResponse, 0, response.Length);	
 			}
 		}
 
@@ -176,10 +188,10 @@ namespace ChatServer
 					data.activeRooms.Add(room);
 				}			
 			}
+
+			byte[] byteResponse = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(data));
 			
-			byte[] response = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(data));
-			
-			await ns.WriteAsync(response, 0, response.Length);	
+			await ns.WriteAsync(byteResponse, 0, byteResponse.Length);	
 		}
 	}
 }
