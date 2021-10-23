@@ -31,6 +31,8 @@ namespace Chat_o_Tron
 
 		private void SendButton_Click (object sender, EventArgs e)
 		{
+			// Add message locally (ShowMessage), on the serverside step over client that sent the message
+
 			if (inputBox.Text.Length != 0)
 			{
 				string username = Utility.Utility.username;

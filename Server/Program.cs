@@ -150,6 +150,7 @@ namespace ChatServer
 
 		private static async void PostMessage (JsonData payload, TcpClient sender)
 		{
+			// Parallelizable!
 			foreach (TcpClient c in RoomClients[payload.room.id])
 			{
 				payload.isMessageMine = c == sender;
