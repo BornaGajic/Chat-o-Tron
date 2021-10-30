@@ -7,3 +7,12 @@ D:\Work\C#\NetworkingExample\Chat-o-Tron\Common\obj\Debug\Common.pdb
 D:\Work\C#\NetworkingExample\Chat-o-Tron\Common\bin\Debug\Utility.dll
 D:\Work\C#\NetworkingExample\Chat-o-Tron\Common\bin\Debug\Utility.pdb
 D:\Work\C#\NetworkingExample\Chat-o-Tron\Common\obj\Debug\Common.csproj.CopyComplete
+D:\GitHubRepository\Chat-o-Tron\Common\bin\Debug\Common.dll
+D:\GitHubRepository\Chat-o-Tron\Common\bin\Debug\Common.pdb
+D:\GitHubRepository\Chat-o-Tron\Common\bin\Debug\Utility.dll
+D:\GitHubRepository\Chat-o-Tron\Common\bin\Debug\Utility.pdb
+D:\GitHubRepository\Chat-o-Tron\Common\obj\Debug\Common.csproj.AssemblyReference.cache
+D:\GitHubRepository\Chat-o-Tron\Common\obj\Debug\Common.csproj.CoreCompileInputs.cache
+D:\GitHubRepository\Chat-o-Tron\Common\obj\Debug\Common.csproj.CopyComplete
+D:\GitHubRepository\Chat-o-Tron\Common\obj\Debug\Common.dll
+D:\GitHubRepository\Chat-o-Tron\Common\obj\Debug\Common.pdb

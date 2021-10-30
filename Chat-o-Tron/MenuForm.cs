@@ -36,6 +36,16 @@ namespace Chat_o_Tron
 			RefreshButton.Click += RefreshRoomButton_Click;
 		}
 
+		private async void MenuForm_Shown (object sender, EventArgs e)
+		{
+			WorkerThread = new Thread(() => ClientReciever(CancelToken.Token));
+			
+			WorkerThread.IsBackground = true;
+			WorkerThread.Start();
+
+			await RefreshRooms();
+		}
+
 		private async void CreateRoomButton_Click (object sender, EventArgs e)
 		{
 			byte[] data = Encoding.UTF8.GetBytes(
@@ -190,16 +200,6 @@ namespace Chat_o_Tron
 
 				contains = false;
 			}
-		}
-
-		private async void MenuForm_Shown (object sender, EventArgs e)
-		{
-			WorkerThread = new Thread(() => ClientReciever(CancelToken.Token));
-			
-			WorkerThread.IsBackground = true;
-			WorkerThread.Start();
-
-			await RefreshRooms();
 		}
 
 		private void RoomList_DoubleClick (object sender, EventArgs e)
