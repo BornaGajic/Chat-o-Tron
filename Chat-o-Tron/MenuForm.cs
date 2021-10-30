@@ -19,15 +19,19 @@ namespace Chat_o_Tron
 {
 	public partial class MenuForm : Form
 	{
+		private Thread WorkerThread { get; set; }
+		private CancellationTokenSource CancelToken { get; }
+
 		private TcpClient Client { get; set; }
 
-		private Dictionary<Guid, ChatForm> activeChatRooms = new Dictionary<Guid, ChatForm>();
+		private Dictionary<Guid, ChatForm> activeChatRooms { get; set; } = new Dictionary<Guid, ChatForm>();
 
 		public MenuForm (TcpClient client)
 		{
 			InitializeComponent();
 
 			Client = client;
+			CancelToken = new CancellationTokenSource();
 
 			RefreshButton.Click += RefreshRoomButton_Click;
 		}
@@ -82,18 +86,18 @@ namespace Chat_o_Tron
 			await RefreshRooms();
 		}
 
-		private void ClientReciever ()
+		private void ClientReciever (CancellationToken cancelToken)
 		{	
 			byte[] buffer = new byte[2048];
 
-			int recievedCountOfBytes = -1;
+			Task<int> recievedCountOfBytes = null;
 
 			Decoder decoder = Encoding.UTF8.GetDecoder();
 
-			StringBuilder message = new();
+			StringBuilder message = new StringBuilder();
 			JsonData payload = null;
 
-			while (this.Visible == true)
+			while (this.Visible == true && !cancelToken.IsCancellationRequested)
 			{
 				do
 				{
@@ -104,15 +108,22 @@ namespace Chat_o_Tron
 
 					try
 					{
-						recievedCountOfBytes = Client.GetStream().Read(buffer, 0, buffer.Length);
+						recievedCountOfBytes = Client.GetStream().ReadAsync(buffer, 0, buffer.Length);
+
+						recievedCountOfBytes.Wait(cancelToken);
 					}
 					catch (Exception e)
 					{
-						Console.WriteLine(e.Data); // App closed (NetworkStream disposed) while trying to read data from the stream - not a problem
+						if (cancelToken.IsCancellationRequested)
+						{
+							return;
+						}
+
+						Console.WriteLine(e.Data); 
 					}
 
-					char[] chars = new char[decoder.GetCharCount(buffer, 0, recievedCountOfBytes)];
-					decoder.GetChars(buffer, 0, recievedCountOfBytes, chars, 0);
+					char[] chars = new char[decoder.GetCharCount(buffer, 0, recievedCountOfBytes.Result)];
+					decoder.GetChars(buffer, 0, recievedCountOfBytes.Result, chars, 0);
 
 					message.Append(chars);
 				}
@@ -145,7 +156,7 @@ namespace Chat_o_Tron
 						break;
 				}
 
-				message.Clear();				
+				message.Clear();
 			}
 		}
 
@@ -183,12 +194,12 @@ namespace Chat_o_Tron
 
 		private async void MenuForm_Shown (object sender, EventArgs e)
 		{
-			Thread recieverThread = new Thread(ClientReciever);
-
-			recieverThread.IsBackground = true;
-			recieverThread.Start();
+			WorkerThread = new Thread(() => ClientReciever(CancelToken.Token));
 			
-			await RefreshRooms ();
+			WorkerThread.IsBackground = true;
+			WorkerThread.Start();
+
+			await RefreshRooms();
 		}
 
 		private void RoomList_DoubleClick (object sender, EventArgs e)
@@ -207,6 +218,8 @@ namespace Chat_o_Tron
 			byte[] data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new JsonData () { command = Commands.LeaveAll }));
 	
 			Client.GetStream().Write(data, 0, data.Length);
+			
+			CancelToken.Cancel();
 		}
 	}
 }

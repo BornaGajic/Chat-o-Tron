@@ -7,3 +7,12 @@ D:\Work\C#\NetworkingExample\Chat-o-Tron\Utility\obj\Debug\netstandard2.0\Utilit
 D:\Work\C#\NetworkingExample\Chat-o-Tron\Utility\obj\Debug\netstandard2.0\Utility.dll
 D:\Work\C#\NetworkingExample\Chat-o-Tron\Utility\obj\Debug\netstandard2.0\Utility.pdb
 D:\Work\C#\NetworkingExample\Chat-o-Tron\Utility\obj\Debug\netstandard2.0\Utility.csproj.AssemblyReference.cache
+D:\GitHubRepository\Chat-o-Tron\Utility\bin\Debug\netstandard2.0\Utility.deps.json
+D:\GitHubRepository\Chat-o-Tron\Utility\bin\Debug\netstandard2.0\Utility.dll
+D:\GitHubRepository\Chat-o-Tron\Utility\bin\Debug\netstandard2.0\Utility.pdb
+D:\GitHubRepository\Chat-o-Tron\Utility\obj\Debug\netstandard2.0\Utility.csproj.AssemblyReference.cache
+D:\GitHubRepository\Chat-o-Tron\Utility\obj\Debug\netstandard2.0\Utility.AssemblyInfoInputs.cache
+D:\GitHubRepository\Chat-o-Tron\Utility\obj\Debug\netstandard2.0\Utility.AssemblyInfo.cs
+D:\GitHubRepository\Chat-o-Tron\Utility\obj\Debug\netstandard2.0\Utility.csproj.CoreCompileInputs.cache
+D:\GitHubRepository\Chat-o-Tron\Utility\obj\Debug\netstandard2.0\Utility.dll
+D:\GitHubRepository\Chat-o-Tron\Utility\obj\Debug\netstandard2.0\Utility.pdb

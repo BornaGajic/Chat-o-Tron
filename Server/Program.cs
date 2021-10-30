@@ -19,10 +19,12 @@ namespace ChatServer
 {
 	class Program
 	{
-		private static Dictionary<Guid, List<TcpClient>> RoomClients = new Dictionary<Guid, List<TcpClient>>();
-		private static List<TcpClient> ConnectedClients = new List<TcpClient>();
+		private static Decoder Decoder { get; set; } = Encoding.UTF8.GetDecoder();
 
-		static async Task Main (string[] args)
+		private static Dictionary<Guid, List<TcpClient>> RoomClients { get; set; } = new Dictionary<Guid, List<TcpClient>>();
+		private static List<TcpClient> ConnectedClients { get; set; } = new List<TcpClient>();
+
+		static async Task Main ()
 		{
 			var serverBroadcastThread = new Thread(new ThreadStart( () => {
 				UdpClient server = new UdpClient(11000);
@@ -69,12 +71,29 @@ namespace ChatServer
 					
 					if (ns.DataAvailable)
 					{
-						byte[] data = new byte[1024];
+						byte[] buffer = new byte[2048];
+						
+						int countOfBytes = -1;
+						StringBuilder message = new StringBuilder("");
 
-						int count = await ns.ReadAsync(data, 0, data.Length);
+						do 
+						{
+							countOfBytes = await ns.ReadAsync(buffer, 0, buffer.Length);
+
+							if (countOfBytes == 0)
+							{
+								break;
+							}
+
+							char[] chars = new char[Decoder.GetCharCount(buffer, 0, countOfBytes)];
+							Decoder.GetChars(buffer, 0, countOfBytes, chars, 0);
+
+							message.Append(chars);
+						}
+						while (ns.DataAvailable);
 						
-						JsonData payloadJson = JsonConvert.DeserializeObject<JsonData>(Encoding.ASCII.GetString(data, 0, count));
-						
+						JsonData payloadJson = JsonConvert.DeserializeObject<JsonData>(message.ToString());
+
 						switch(payloadJson.command)
 						{
 							case Commands.Leave:
@@ -154,7 +173,7 @@ namespace ChatServer
 			foreach (TcpClient c in RoomClients[payload.room.id])
 			{
 				payload.isMessageMine = c == sender;
-				
+
 				string response = JsonConvert.SerializeObject(payload);
 				
 				byte[] byteResponse = Encoding.ASCII.GetBytes(response);

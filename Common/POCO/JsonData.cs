@@ -10,7 +10,7 @@ namespace Common.POCO
 	public class JsonData
 	{
 		public Commands command;
-
+		
 		public Room room = new Room();
 
 		public string message = string.Empty;

@@ -106,7 +106,7 @@ namespace Chat_o_Tron
 
 
 			float colWidth;
-			if (isMessageMine)
+			if (isMessageMine == true)
 			{
 				chatBox.ColumnStyles[1].Width += 0.1f * chatBox.ColumnStyles[1].Width;
 				colWidth = (chatBox.ColumnStyles[1].Width / 100) * chatBox.Width;
@@ -126,18 +126,8 @@ namespace Chat_o_Tron
 				chatBox.RowStyles.Add(new RowStyle(SizeType.Absolute, rowHeight));
 			}
 
-			if (isMessageMine)
-			{
-				chatBox.Controls.Add(newMessage, 2, chatBox.RowCount - 1);
-				//chatBox.Controls.Add(Username, 3, chatBox.RowCount - 1);
-			}
-			else
-			{
-				chatBox.Controls.Add(newMessage, 1, chatBox.RowCount - 1);
-				//chatBox.Controls.Add(Username, 0, chatBox.RowCount - 1);
-			}
-				
-
+			chatBox.Controls.Add(newMessage, isMessageMine ? 1 : 0, chatBox.RowCount - 1);
+			
 			ToolTip messageToolTip = new ToolTip();
 			messageToolTip.SetToolTip(newMessage, DateTime.Now.ToString());
 

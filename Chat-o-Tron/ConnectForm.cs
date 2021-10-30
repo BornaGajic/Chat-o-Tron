@@ -36,19 +36,18 @@ namespace Chat_o_Tron
 			
 			udpClient.Close();
 
-			TcpClient tcpClient = new TcpClient(Dns.GetHostEntry(serverEp.Address).HostName, 7777);
+			using (TcpClient tcpClient = new TcpClient(Dns.GetHostEntry(serverEp.Address).HostName, 7777))
+			{
+				this.Cursor = Cursors.Default;
 
-			this.Cursor = Cursors.Default;
+				MenuForm childForm = new MenuForm(tcpClient);
 
-			MenuForm childForm = new MenuForm(tcpClient);
+				Utility.Utility.username = usernameBox.Text;
 
-			Utility.Utility.username = usernameBox.Text;
-
-			this.Hide();
-			childForm.ShowDialog();
-
-			tcpClient.GetStream().Close();
-			tcpClient.Close();
+				this.Hide();
+				childForm.ShowDialog();
+				childForm.Dispose();
+			} 
 
 			this.Close();
 		}
